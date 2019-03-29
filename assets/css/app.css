@@ -10,6 +10,10 @@
   width: initial;
 }
 
+form {
+  margin: 0;
+}
+
 .player-seats {
   display: flex;
 }
@@ -28,6 +32,18 @@
 .player-seat button {
   display: block;
   margin: 0 auto;
+}
+
+@keyframes animate-card {
+  0% {transform: scale(1);}
+  50% {transform: scale(1.5);}
+  100% {transform: scale(1);}
+}
+
+.player-seat--seated {
+  border: 1px solid #e0e0e0;
+  animation-name: animate-card;
+  animation-duration: 0.15s;
 }
 
 .player-id {

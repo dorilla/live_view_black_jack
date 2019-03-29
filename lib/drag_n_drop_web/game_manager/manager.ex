@@ -35,6 +35,16 @@ defmodule GameManager.Manager do
     Phoenix.PubSub.broadcast DragNDrop.InternalPubSub, "game", {:update_game_state}
   end
 
+  def set_name(seat_id, name) do
+    seat = "seat_#{seat_id}"
+    seat_data = get(seat)
+      |> Map.put(:player_name, name)
+
+    set(seat, seat_data)
+
+    Phoenix.PubSub.broadcast DragNDrop.InternalPubSub, "game", {:update_game_state}
+  end
+
   defp get(slug) do
     case GenServer.call(__MODULE__, {:get, slug}) do
       [] -> {:not_found}

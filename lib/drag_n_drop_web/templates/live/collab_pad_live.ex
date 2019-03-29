@@ -23,6 +23,9 @@ defmodule DragNDropWeb.CollabPadLive do
           <div class="player-seat <%= if seat.player_id, do: "player-seat--seated" %>">
             <%= if seat.player_id do %>
               <div>
+                <%= if seat.current_bet > 0 do %>
+                  <div><strong>Current Bet: <%= seat.current_bet %></strong></div>
+                <% end %>
                 <%= if seat.player_name do %>
                   <strong>
                     Name: <%= seat.player_name %>
@@ -48,6 +51,16 @@ defmodule DragNDropWeb.CollabPadLive do
                 <%= seat.player_id %>
               </div>
               <div>Money: <%= seat.money %></div>
+              <div>
+                <%= if seat.money > 0 && seat.current_bet == 0 do %>
+                  <hr>
+                  Make a bet:
+                  <form phx-submit="enter-bet">
+                    <input type="number" min=1 max=<%= seat.money %> name="bet" value=<%= seat.current_bet %>>
+                    <input type="hidden" name="seat_id" value="<%= idx + 1 %>"/>
+                  </form>
+                <% end %>
+              </div>
               <%= seat.hand %>
             <% else %>
               <%= if @is_seated do %>
@@ -87,6 +100,10 @@ defmodule DragNDropWeb.CollabPadLive do
     {:noreply, enter_name(seat_id, name, socket)}
   end
 
+  def handle_event("enter-bet",  %{"bet" => bet, "seat_id" => seat_id}, socket) do
+    {:noreply, enter_bet(seat_id, bet, socket)}
+  end
+
   # Consume message from pubsub
   def handle_info({:update_game_state}, socket) do
     {:noreply, assign(socket, get_game_state(socket))}
@@ -102,6 +119,14 @@ defmodule DragNDropWeb.CollabPadLive do
     GameManager.Manager.set_name(seat_id, name)
 
     assign(socket, get_game_state(socket) |> Map.put(:is_seated, true))
+  end
+
+  defp enter_bet(seat_id, bet, socket) do
+    {bet_int, _} = Integer.parse(bet)
+
+    GameManager.Manager.set_bet(seat_id, bet_int)
+
+    assign(socket, get_game_state(socket))
   end
 
   defp get_game_state(socket) do

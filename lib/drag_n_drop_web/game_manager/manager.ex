@@ -1,6 +1,15 @@
 defmodule GameManager.Manager do
   use GenServer
 
+  # Phases
+  # WAIT_FOR_BET
+  # FINISH_BETS -> happens after the first bet
+  # DEAL_INITIAL -> no more bets
+  # DEAL_PLAYER_1 -> hit/stand action. check if blackjack or bust or 21
+  # DEAL_PLAYER_X -> ****
+  # PAY_OUT
+  # back to WAIT_FOR_BET
+
   def start_link(opts \\ []) do
     GenServer.start_link(__MODULE__, [
       {:ets_table_name, :game_manager_table},
@@ -45,6 +54,17 @@ defmodule GameManager.Manager do
     Phoenix.PubSub.broadcast DragNDrop.InternalPubSub, "game", {:update_game_state}
   end
 
+  def set_bet(seat_id, bet) do
+    seat = "seat_#{seat_id}"
+    seat_data = get(seat)
+      |> Map.put(:current_bet, bet)
+      |> Map.put(:money, get(seat).money - bet)
+
+    set(seat, seat_data)
+
+    Phoenix.PubSub.broadcast DragNDrop.InternalPubSub, "game", {:update_game_state}
+  end
+
   defp get(slug) do
     case GenServer.call(__MODULE__, {:get, slug}) do
       [] -> {:not_found}
@@ -61,7 +81,8 @@ defmodule GameManager.Manager do
       player_id: nil,
       player_name: nil,
       hand: [],
-      money: nil
+      money: nil,
+      current_bet: 0
     }
   end
 
@@ -70,7 +91,8 @@ defmodule GameManager.Manager do
       player_id: player_id,
       player_name: nil,
       hand: [],
-      money: 1000
+      money: 1000,
+      current_bet: 0
     }
   end
 

@@ -18,6 +18,7 @@ defmodule DragNDropWeb.Router do
     pipe_through :browser
 
     get "/", PageController, :index
+    live "/collab_pad", CollabPadLive
   end
 
   # Other scopes may use custom stacks.

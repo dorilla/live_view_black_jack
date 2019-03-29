@@ -1,3 +1,35 @@
 /* This file is for your main application css. */
 
 @import "./phoenix.css";
+
+.container {
+  display: flex;
+  justify-content: center;
+
+  max-width: initial;
+  width: initial;
+}
+
+.player-seats {
+  display: flex;
+}
+
+.player-seat {
+  width: 200px;
+  min-width: 200px;
+  max-width: 200px;
+  margin: 8px;
+  padding: 16px;
+  border-radius: 4px;
+
+  background: #f0f0f0;
+}
+
+.player-seat button {
+  display: block;
+  margin: 0 auto;
+}
+
+.player-id {
+  font-size: 8pt;
+}

@@ -11,9 +11,11 @@ defmodule DragNDrop.Application do
       # Start the Ecto repository
       DragNDrop.Repo,
       # Start the endpoint when the application starts
-      DragNDropWeb.Endpoint
+      DragNDropWeb.Endpoint,
       # Starts a worker by calling: DragNDrop.Worker.start_link(arg)
       # {DragNDrop.Worker, arg},
+      GameManager.Supervisor,
+      {Phoenix.PubSub.PG2, name: DragNDrop.InternalPubSub, adapter: Phoenix.PubSub.PG2}
     ]
 
     # See https://hexdocs.pm/elixir/Supervisor.html

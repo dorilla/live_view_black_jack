@@ -7,6 +7,9 @@ defmodule DragNDropWeb.CollabPadLive do
       <br>
 
       <div>
+        <%= @game_state.countdown %>
+      </div>
+      <div>
         <strong>Dealer</strong>
 
         <%= for card <- @game_state.dealer do %>

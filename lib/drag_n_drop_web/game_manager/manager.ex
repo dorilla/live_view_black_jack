@@ -2,13 +2,13 @@ defmodule GameManager.Manager do
   use GenServer
 
   # Phases
-  # WAIT_FOR_BET
+  # WAIT_FOR_INITIAL_BET
   # FINISH_BETS -> happens after the first bet
   # DEAL_INITIAL -> no more bets
   # DEAL_PLAYER_1 -> hit/stand action. check if blackjack or bust or 21
   # DEAL_PLAYER_X -> ****
   # PAY_OUT
-  # back to WAIT_FOR_BET
+  # back to WAIT_FOR_INITIAL_BET
 
   def start_link(opts \\ []) do
     GenServer.start_link(__MODULE__, [
@@ -24,7 +24,9 @@ defmodule GameManager.Manager do
       seat_2: get("seat_2"),
       seat_3: get("seat_3"),
       seat_4: get("seat_4"),
-      seat_5: get("seat_5")
+      seat_5: get("seat_5"),
+      phase: get("phase"),
+      countdown: get("countdown")
     }
   end
 
@@ -63,6 +65,7 @@ defmodule GameManager.Manager do
     set(seat, seat_data)
 
     Phoenix.PubSub.broadcast DragNDrop.InternalPubSub, "game", {:update_game_state}
+    transition_to_finish_bets_phase()
   end
 
   defp get(slug) do
@@ -72,7 +75,7 @@ defmodule GameManager.Manager do
     end
   end
 
-  defp set(slug, value) do
+  def set(slug, value) do
     GenServer.call(__MODULE__, {:set, slug, value})
   end
 
@@ -96,6 +99,24 @@ defmodule GameManager.Manager do
     }
   end
 
+  defp transition_to_finish_bets_phase do
+    cond do
+      get("phase") == :WAIT_FOR_INITIAL_BET ->
+        Task.start(fn -> start_countdown_for_bets() end)
+    end
+  end
+
+  defp start_countdown_for_bets do
+    for inc <- Enum.to_list(10..1) do
+      GameManager.Manager.set("countdown", inc)
+      Phoenix.PubSub.broadcast DragNDrop.InternalPubSub, "game", {:update_game_state}
+      :timer.sleep(1000)
+    end
+
+    GameManager.Manager.set("countdown", 0)
+    Phoenix.PubSub.broadcast DragNDrop.InternalPubSub, "game", {:update_game_state}
+  end
+
   # GenServer callbacks
 
   def handle_call({:get, slug}, _from, state) do
@@ -108,6 +129,11 @@ defmodule GameManager.Manager do
     %{ets_table_name: ets_table_name} = state
     :ets.insert(ets_table_name, {slug, value})
     {:reply, value, state}
+  end
+
+  def handle_cast({:transition_to_finish_bets_phase}, state) do
+    Task.start(fn -> transition_to_finish_bets_phase() end)
+    {:noreply, state}
   end
 
   def init(args) do
@@ -126,6 +152,9 @@ defmodule GameManager.Manager do
     :ets.insert(ets_table_name, {"seat_3", blank_player()})
     :ets.insert(ets_table_name, {"seat_4", blank_player()})
     :ets.insert(ets_table_name, {"seat_5", blank_player()})
+
+    :ets.insert(ets_table_name, {"phase", :WAIT_FOR_INITIAL_BET})
+    :ets.insert(ets_table_name, {"countdown", 0})
 
     {:ok, %{log_limit: log_limit, ets_table_name: ets_table_name}}
   end

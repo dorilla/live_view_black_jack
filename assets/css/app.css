@@ -1,7 +1,5 @@
 /* This file is for your main application css. */
 
-@import "./phoenix.css";
-
 .container {
   display: flex;
   justify-content: center;
@@ -38,6 +36,8 @@ input {
   border-radius: 4px;
 
   background: #f0f0f0;
+
+  transition: transform 2s;
 }
 
 .player-seat button {
@@ -45,16 +45,17 @@ input {
   margin: 0 auto;
 }
 
-@keyframes animate-card {
-  0% {transform: scale(1);}
-  50% {transform: scale(1.5);}
+/* @keyframes animate-card {
+  0% {transform: scale(1.15);}
   100% {transform: scale(1);}
-}
+} */
 
 .player-seat--seated {
   border: 1px solid #e0e0e0;
-  animation-name: animate-card;
-  animation-duration: 0.15s;
+  transform:
+  /* animation-name: animate-card;
+  animation-duration: 0.15s; */
+
 }
 
 .player-id {

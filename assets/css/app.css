@@ -1,5 +1,10 @@
 /* This file is for your main application css. */
 
+body {
+  background: #e9e9e9;
+  font-family: 'Avenir Next', Helvetica, Verdana, Arial, sans-serif;
+}
+
 .container {
   display: flex;
   justify-content: center;
@@ -18,7 +23,7 @@ input {
   border-radius: .4rem;
   box-shadow: none;
   box-sizing: inherit;
-  height: 3.8rem;
+  height: 1rem;
   padding: .6rem 1.0rem;
   width: 100%;
 }
@@ -28,16 +33,112 @@ input {
 }
 
 .player-seat {
-  width: 200px;
-  min-width: 200px;
-  max-width: 200px;
+  width: 150px;
+  min-width: 150px;
+  max-width: 150px;
   margin: 8px;
   padding: 16px;
-  border-radius: 4px;
-
-  background: #f0f0f0;
 
   transition: transform 2s;
+}
+
+.player-seat:nth-child(2),
+.player-seat:nth-child(4) {
+  margin-top: 50px;
+}
+
+.player-seat:nth-child(3) {
+  margin-top: 80px;
+}
+
+.bet-circle {
+  background: white;
+  width: 50px; height: 50px;
+  margin: 8px auto;
+  border-radius: 50%;
+  border: 3px solid #858eaa;
+}
+
+.bet-circle .poker-chip {
+  transform: scale(0.4) translateY(100px);
+  margin-top: -50px;
+  margin-left: -50px;
+  opacity: 0;
+}
+
+.bet-circle .poker-chip--slide-in {
+  transform: scale(0.4) translateY(0);
+  opacity: 1;
+}
+
+.poker-chip {
+  margin: 1em;
+  position: relative;
+  display: inline-block;
+  width: 151px;
+  height: 151px;
+  box-shadow: 0 0 5px 1px rgba(0, 0, 0, 0.5), 0 0 3px 0 rgba(0, 0, 0, 0.4) inset;
+  border-radius: 50%;
+  background-size: 151px 151px;
+  background-position: center center;
+  transition: transform 0.5s ease-out;
+}
+
+.poker-chip {
+  background-image: linear-gradient(0deg, transparent 0, transparent 67.5px, #fff 67.5px, #fff 83.5px, transparent 83.5px, transparent 151px), linear-gradient(60deg, transparent 0, transparent 97.4304px, #fff 97.4304px, #fff 113.4304px, transparent 113.4304px, transparent 151px), linear-gradient(120deg, #dddddd 0, #dddddd 97.4304px, #fff 97.4304px, #fff 113.4304px, #dddddd 113.4304px, #dddddd 151px);
+}
+
+.poker-chip:before {
+  position: absolute;
+  content: "";
+  z-index: 1;
+  width: 117px;
+  height: 117px;
+  border-radius: 50%;
+  top: 9px;
+  left: 9px;
+  background-size: 151px 151px;
+  background-position: center center;
+}
+
+.poker-chip:before {
+  border: 8px solid #dddddd;
+  background-image: linear-gradient(0deg, transparent 0, transparent 69.5px, #EBEBEB 69.5px, #EBEBEB 81.5px, transparent 81.5px, transparent 151px), linear-gradient(30deg, transparent 0, transparent 98.7104px, #EBEBEB 98.7104px, #EBEBEB 110.7104px, transparent 110.7104px, transparent 151px), linear-gradient(60deg, transparent 0, transparent 98.7104px, #EBEBEB 98.7104px, #EBEBEB 110.7104px, transparent 110.7104px, transparent 151px), linear-gradient(90deg, transparent 0, transparent 69.5px, #EBEBEB 69.5px, #EBEBEB 81.5px, transparent 81.5px, transparent 151px), linear-gradient(120deg, transparent 0, transparent 98.7104px, #EBEBEB 98.7104px, #EBEBEB 110.7104px, transparent 110.7104px, transparent 151px), linear-gradient(150deg, #C1C1C1 0, #C1C1C1 98.7104px, #EBEBEB 98.7104px, #EBEBEB 110.7104px, #C1C1C1 110.7104px, #C1C1C1 151px);
+}
+
+.poker-chip:after {
+  z-index: 2;
+  position: absolute;
+  content: "";
+  text-align: center;
+  font: bold 50px/111px Arial;
+  white-space: pre;
+  width: 111px;
+  height: 111px;
+  border-radius: 50%;
+  top: 20px;
+  left: 20px;
+  text-shadow: -1px -1px 0px rgba(0, 0, 0, 0.3), 1px 1px 0px rgba(255, 255, 255, 0.2);
+}
+
+.poker-chip:after {
+  /* content: "1"; */
+  background: #dddddd;
+  color: #C1C1C1;
+}
+
+.poker-chip__value {
+  z-index: 3;
+  position: absolute;
+  top: 0;
+  left: 0;
+  display: flex;
+  width: 100%;
+  height: 100%;
+  justify-content: center;
+  align-items: center;
+  font-size: 35pt;
+  font-weight: 600;
 }
 
 .player-seat button {
@@ -45,19 +146,78 @@ input {
   margin: 0 auto;
 }
 
-/* @keyframes animate-card {
+@keyframes animate-card {
   0% {transform: scale(1.15);}
   100% {transform: scale(1);}
-} */
+}
 
 .player-seat--seated {
-  border: 1px solid #e0e0e0;
-  transform:
-  /* animation-name: animate-card;
-  animation-duration: 0.15s; */
-
+  animation-name: animate-card;
+  animation-duration: 0.15s;
 }
 
 .player-id {
   font-size: 8pt;
+}
+
+.player-detail {
+  max-width: 100px;
+  margin: 0 auto;
+  text-align: center;
+}
+
+.player-name {
+  display: inline-block;
+  background: #868ea8;
+  padding: 4px 8px;
+  border-radius: 4px;
+  color: white;
+  font-weight: 600;
+}
+
+.player-name span {
+  font-size: 8pt;
+}
+
+.player-name--you {
+  background: #414bd0;
+}
+
+.player-money {
+  display: inline-block;
+  background: #3cd05e;
+  margin: 8px 0;
+  padding: 4px 8px;
+  border-radius: 4px;
+  color: white;
+  font-weight: 600;
+}
+
+.sit-here {
+  margin-top: 16px;
+}
+.sit-here button {
+  outline: none;
+  border: none;
+  background: #2e74dd;
+  padding: 8px 16px;
+  border-radius: 4px;
+  color: white;
+  font-size: 1em;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.sit-here button:hover {
+  background: #1953aa;
+}
+
+.player-actions {
+  max-width: 400px;
+  margin: 16px auto 0;
+}
+
+.player-actions h1 {
+  margin: 8px 0;
+  font-size: 12pt;
 }

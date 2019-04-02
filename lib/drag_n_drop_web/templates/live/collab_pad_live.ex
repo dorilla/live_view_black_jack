@@ -4,8 +4,6 @@ defmodule DragNDropWeb.CollabPadLive do
   def render(assigns) do
     ~L"""
     <div>
-      <br>
-
       <div>
         <%= @game_state.countdown %>
       </div>
@@ -25,52 +23,60 @@ defmodule DragNDropWeb.CollabPadLive do
         <%= for {seat, idx} <- Enum.with_index([@game_state.seat_1, @game_state.seat_2, @game_state.seat_3, @game_state.seat_4, @game_state.seat_5]) do %>
           <div class="player-seat <%= if seat.player_id, do: "player-seat--seated" %>">
             <%= if seat.player_id do %>
-              <div>
-                <%= if seat.current_bet > 0 do %>
-                  <div><strong>Current Bet: <%= seat.current_bet %></strong></div>
-                <% end %>
-                <%= if seat.player_name do %>
-                  <strong>
-                    Name: <%= seat.player_name %>
+              <div class="bet-circle">
+                <div class="poker-chip <%= if seat.current_bet > 0, do: "poker-chip--slide-in" %>">
+                  <%= if seat.current_bet > 0 do %>
+                    <div class="poker-chip__value"><%= seat.current_bet %></div>
+                  <% end %>
+                </div>
+              </div>
+              <div class="player-detail">
+                <%= if seat.player_name && String.length(seat.player_name) > 0 do %>
+                  <strong class="player-name <%= if seat.player_id == @current_player_id, do: "player-name--you" %>">
+                    <%= seat.player_name %>
                   </strong>
                 <% else %>
-                  <strong>
+                  <strong class="player-name <%= if seat.player_id == @current_player_id, do: "player-name--you" %>">
                     Player <%= idx + 1 %>
                   </strong>
-
-                  <%= if seat.player_id == @current_player_id do %>
-                    <form phx-submit="enter-name">
-                      <input name="name" placeholder="Enter your name" value="<%= seat.player_name %>"/>
-                      <input type="hidden" name="seat_id" value="<%= idx + 1 %>"/>
-                    </form>
-                  <% end %>
                 <% end %>
-              </div>
 
-              <%= if seat.player_id == @current_player_id do %>
-                <div>You</div>
-              <% end %>
-              <div class="player-id">
-                <%= seat.player_id %>
+                <div class="player-id">
+                  <%#= seat.player_id %>
+                </div>
+
+                <div class="player-money">$<%= seat.money %></div>
               </div>
-              <div>Money: <%= seat.money %></div>
-              <div>
-                <%= if seat.money > 0 && seat.current_bet == 0 do %>
-                  <hr>
-                  Make a bet:
-                  <form phx-submit="enter-bet">
-                    <input type="number" min=1 max=<%= seat.money %> name="bet" value=<%= seat.current_bet %>>
-                    <input type="hidden" name="seat_id" value="<%= idx + 1 %>"/>
-                  </form>
-                <% end %>
-              </div>
-              <%= seat.hand %>
             <% else %>
-              <%= if @is_seated do %>
-                <button disabled>Sit Here</button>
-              <% else %>
-                <button phx-click="sit" phx-value=<%= idx + 1 %>>Sit Here</button>
+
+              <div class="bet-circle"></div>
+              <%= unless @is_seated do %>
+                <div class="sit-here"><button phx-click="sit" phx-value=<%= idx + 1 %>>Sit Here</button></div>
               <% end %>
+
+            <% end %>
+          </div>
+        <% end %>
+      </div>
+
+      <div class="player-actions">
+        <%= if @is_seated do %>
+          <h1>Player Actions</h1>
+          <div>
+            <form phx-submit="enter-name">
+              <input name="name" maxlength="10" placeholder="Enter your name" value="<%= @current_player_name %>"/>
+              <input type="hidden" name="seat_id" value="<%= @current_seat_id %>"/>
+            </form>
+          </div>
+
+          <div>
+            <%= if @current_seat && @current_seat.money > 0 && @current_seat.current_bet == 0 do %>
+              <hr>
+              Make a bet:
+              <form phx-submit="enter-bet">
+                <input type="number" min=1 max=<%= @current_seat.money %> name="bet" value=<%= @current_seat.current_bet %>>
+                <input type="hidden" name="seat_id" value="<%= @current_seat_id %>"/>
+              </form>
             <% end %>
           </div>
         <% end %>
@@ -84,7 +90,10 @@ defmodule DragNDropWeb.CollabPadLive do
 
     assigned_data = %{
       current_player_id: socket.id,
+      current_player_name: nil,
       is_seated: false,
+      current_seat_id: nil,
+      current_seat: nil,
       game_state: GameManager.Manager.get_game_state
     }
 
@@ -115,13 +124,21 @@ defmodule DragNDropWeb.CollabPadLive do
   defp player_sit(seat_id, socket) do
     unless socket.assigns.is_seated, do: GameManager.Manager.occupy_seat(seat_id, socket.id)
 
-    assign(socket, get_game_state(socket) |> Map.put(:is_seated, true))
+    data = get_game_state(socket)
+      |> Map.put(:is_seated, true)
+      |> Map.put(:current_seat_id, seat_id)
+
+    assign(socket, data
+      |> Map.put(:current_seat, Map.get(data.game_state, String.to_atom("seat_#{seat_id}")))
+    )
   end
 
   defp enter_name(seat_id, name, socket) do
     GameManager.Manager.set_name(seat_id, name)
 
-    assign(socket, get_game_state(socket) |> Map.put(:is_seated, true))
+    assign(socket, get_game_state(socket)
+      |> Map.put(:current_player_name, name)
+    )
   end
 
   defp enter_bet(seat_id, bet, socket) do
@@ -133,7 +150,15 @@ defmodule DragNDropWeb.CollabPadLive do
   end
 
   defp get_game_state(socket) do
-    socket.assigns
-      |> Map.put(:game_state, GameManager.Manager.get_game_state)
+    game_state = GameManager.Manager.get_game_state
+
+    if socket.assigns.is_seated do
+      socket.assigns
+        |> Map.put(:game_state, game_state)
+        |> Map.put(:current_seat, Map.get(game_state, String.to_atom("seat_#{socket.assigns.current_seat_id}")))
+    else
+      socket.assigns
+        |> Map.put(:game_state, game_state)
+    end
   end
 end

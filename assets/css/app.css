@@ -1,6 +1,7 @@
 /* This file is for your main application css. */
 
 body {
+  margin-top: 32px;
   background: #1f4463;
   font-family: 'Avenir Next', Helvetica, Verdana, Arial, sans-serif;
 }
@@ -151,13 +152,13 @@ input {
   margin: 0 auto;
 }
 
-@keyframes animate-card {
+@keyframes animate-player-detail {
   0% {transform: scale(1.15);}
   100% {transform: scale(1);}
 }
 
 .player-seat--seated .player-detail {
-  animation-name: animate-card;
+  animation-name: animate-player-detail;
   animation-duration: 0.15s;
 }
 
@@ -219,6 +220,7 @@ input {
   color: white;
   font-size: 12pt;
   font-weight: 600;
+  letter-spacing: 2px;
   cursor: pointer;
   transition: transform 0.15s;
 }
@@ -232,7 +234,7 @@ input {
   max-width: 200px;
   margin: 16px auto 0;
   padding: 16px 16px;
-  animation-name: animate-card;
+  animation-name: animate-player-detail;
   animation-duration: 0.15s;
   color: white;
 }
@@ -241,4 +243,212 @@ input {
   margin: 4px 0;
   padding: 0;
   font-weight: 600;
+}
+
+@keyframes animate-card {
+  0% {transform: translateY(-100px);}
+  100% {transform: translateY(0);}
+}
+
+@keyframes animate-card {
+  0% {transform: translateY(-100px);}
+  100% {transform: translateY(0);}
+}
+
+.cards {
+  position: relative;
+  display: flex;
+  width: 100%;
+  height: 90px;
+  margin-bottom: 16px;
+}
+
+.card {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 70px;
+  height: 90px;
+  padding: 6px;
+  box-sizing: border-box;
+  background: white;
+  border-radius: 2px;
+  box-shadow: 0 0 16px 4px rgba(0, 0, 0, 0.3);
+  font-size: 12pt;
+  font-weight: 600;
+  line-height: 100%;
+
+  animation-name: animate-card;
+  animation-duration: 0.15s;
+  animation-timing-function: ease-in;
+}
+
+.card:hover {
+  z-index: 100;
+}
+
+.card--idx-1 {
+}
+
+.card--idx-2 {
+  top: calc(-10px * 1);
+  left: calc(20px * 1);
+}
+
+.card--idx-3 {
+  top: calc(-10px * 2);
+  left: calc(20px * 2);
+}
+
+.card--idx-4 {
+  top: calc(-10px * 3);
+  left: calc(20px * 3);
+}
+
+.card--idx-5 {
+  top: calc(-10px * 4);
+  left: calc(20px * 4);
+}
+
+.card--idx-6 {
+  top: calc(-10px * 5);
+  left: calc(20px * 5);
+}
+
+.card--idx-7 {
+  top: calc(-10px * 6);
+  left: calc(20px * 6);
+}
+
+.card--idx-8 {
+  top: calc(-10px * 7);
+  left: calc(20px * 7);
+}
+
+.card--idx-9 {
+  top: calc(-10px * 8);
+  left: calc(20px * 8);
+}
+
+.card--idx-10 {
+  top: calc(-10px * 9);
+  left: calc(20px * 9);
+}
+
+.card--idx-11 {
+  top: calc(-10px * 10);
+  left: calc(20px * 10);
+}
+
+.cards--dealer .card--idx-1 {
+}
+
+.cards--dealer .card--idx-2 {
+  top: calc(10px * 1);
+  left: calc(20px * 1);
+}
+
+.cards--dealer .card--idx-3 {
+  top: calc(10px * 2);
+  left: calc(20px * 2);
+}
+
+.cards--dealer .card--idx-4 {
+  top: calc(10px * 3);
+  left: calc(20px * 3);
+}
+
+.cards--dealer .card--idx-5 {
+  top: calc(10px * 4);
+  left: calc(20px * 4);
+}
+
+.cards--dealer .card--idx-6 {
+  top: calc(10px * 5);
+  left: calc(20px * 5);
+}
+
+.cards--dealer .card--idx-7 {
+  top: calc(10px * 6);
+  left: calc(20px * 6);
+}
+
+.cards--dealer .card--idx-8 {
+  top: calc(10px * 7);
+  left: calc(20px * 7);
+}
+
+.cards--dealer .card--idx-9 {
+  top: calc(10px * 8);
+  left: calc(20px * 8);
+}
+
+.cards--dealer .card--idx-10 {
+  top: calc(10px * 9);
+  left: calc(20px * 9);
+}
+
+.cards--dealer .card--idx-11 {
+  top: calc(10px * 10);
+  left: calc(20px * 10);
+}
+
+.card--suit-heart,
+.card--suit-diamond {
+  color: #f23f54;
+}
+
+.card--hidden {
+  background: radial-gradient(#5e8cbb, #366492);
+}
+
+.card-desc {
+  position: absolute;
+  right: 8px;
+  bottom: 8px;
+  font-size: 24pt;
+  line-height: 100%;
+  text-align: center;
+}
+
+.hand-value {
+  color: white;
+  text-align: center;
+  font-weight: 600;
+  opacity: 0;
+}
+
+.hand-value span {
+  font-size: 10pt;
+  font-weight: 400;
+}
+
+.hand-value--visible {
+  opacity: 1;
+}
+
+.dealer {
+  width: 300px;
+  height: 200px;
+  margin: 0 auto;
+}
+
+.dealer-header {
+  color: #bda474;
+  font-size: 16pt;
+  font-weight: 600;
+  text-align: center;
+  letter-spacing: 2px;
+}
+
+.dealer-quote {
+  width: 100%;
+  margin: 0 auto 16px;
+  padding: 8px;
+  box-sizing: border-box;
+  text-align: center;
+  background: #366492;
+  border-radius: 4px;
+  box-shadow: 0 0 16px 2px rgba(0, 0, 0, 0.3);
+  color: white;
 }

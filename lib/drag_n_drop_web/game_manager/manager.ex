@@ -10,6 +10,29 @@ defmodule GameManager.Manager do
   # PAY_OUT
   # back to WAIT_FOR_INITIAL_BET
 
+  @suit [
+    :HEART,
+    :DIAMOND,
+    :SPADE,
+    :CLUB
+  ]
+
+  @rank [
+    :ACE,
+    :TWO,
+    :THREE,
+    :FOUR,
+    :FIVE,
+    :SIX,
+    :SEVEN,
+    :EIGHT,
+    :NINE,
+    :TEN,
+    :JACK,
+    :QUEEN,
+    :KING
+  ]
+
   def start_link(opts \\ []) do
     GenServer.start_link(__MODULE__, [
       {:ets_table_name, :game_manager_table},
@@ -37,11 +60,24 @@ defmodule GameManager.Manager do
   end
 
   def leave_seat(input_player_id) do
-    if get("seat_1").player_id == input_player_id, do: set("seat_1", blank_player)
-    if get("seat_2").player_id == input_player_id, do: set("seat_2", blank_player)
-    if get("seat_3").player_id == input_player_id, do: set("seat_3", blank_player)
-    if get("seat_4").player_id == input_player_id, do: set("seat_4", blank_player)
-    if get("seat_5").player_id == input_player_id, do: set("seat_5", blank_player)
+    if get("seat_1").player_id == input_player_id, do: set("seat_1", blank_player())
+    if get("seat_2").player_id == input_player_id, do: set("seat_2", blank_player())
+    if get("seat_3").player_id == input_player_id, do: set("seat_3", blank_player())
+    if get("seat_4").player_id == input_player_id, do: set("seat_4", blank_player())
+    if get("seat_5").player_id == input_player_id, do: set("seat_5", blank_player())
+
+    # check if there are any seats taken
+    # if there are none, then cancel any countdowns and go back to :WAIT_FOR_INITIAL_BET
+    unless get("seat_1").player_id || get("seat_2").player_id || get("seat_3").player_id || get("seat_4").player_id || get("seat_5").player_id do
+      if get("curr_task") do
+        Process.exit(get("curr_task"), :brutal_kill)
+        set("curr_task", nil)
+      end
+
+      set("phase", :WAIT_FOR_INITIAL_BET)
+      set("countdown", 0)
+      set("dealer", [])
+    end
 
     Phoenix.PubSub.broadcast DragNDrop.InternalPubSub, "game", {:update_game_state}
   end
@@ -70,12 +106,12 @@ defmodule GameManager.Manager do
 
   defp get(slug) do
     case GenServer.call(__MODULE__, {:get, slug}) do
-      [] -> {:not_found}
+      [] -> nil
       [{_slug, result}] -> result
     end
   end
 
-  def set(slug, value) do
+  defp set(slug, value) do
     GenServer.call(__MODULE__, {:set, slug, value})
   end
 
@@ -101,20 +137,76 @@ defmodule GameManager.Manager do
 
   defp transition_to_finish_bets_phase do
     cond do
-      get("phase") == :WAIT_FOR_INITIAL_BET ->
-        Task.start(fn -> start_countdown_for_bets() end)
+      get("phase") == :WAIT_FOR_INITIAL_BET || get("phase") == :FINISH_BETS ->
+        if get("curr_task") do
+          Process.exit(get("curr_task"), :brutal_kill)
+          set("curr_task", nil)
+        end
+
+        {:ok, task} = Task.start(fn -> start_countdown_for_bets() end)
+
+        set("curr_task", task)
+        set("phase", :FINISH_BETS)
+      true -> nil
     end
   end
 
   defp start_countdown_for_bets do
-    for inc <- Enum.to_list(10..1) do
-      GameManager.Manager.set("countdown", inc)
+    for inc <- Enum.to_list(3..1) do
+      set("countdown", inc)
       Phoenix.PubSub.broadcast DragNDrop.InternalPubSub, "game", {:update_game_state}
       :timer.sleep(1000)
     end
 
-    GameManager.Manager.set("countdown", 0)
+    set("countdown", 0)
+    start_dealing()
+  end
+
+  defp start_dealing do
+    cond do
+      get("phase") == :WAIT_FOR_INITIAL_BET || get("phase") == :FINISH_BETS ->
+        set("phase", :DEAL_INITIAL)
+
+        for seat_id <- Enum.to_list(1..5) do
+          deal(seat_id)
+        end
+
+        deal_dealer
+
+        for seat_id <- Enum.to_list(1..5) do
+          deal(seat_id)
+        end
+
+        deal_dealer()
+
+        for seat_id <- Enum.to_list(1..5) do
+          start_action_to(seat_id)
+        end
+      true -> nil
+    end
+  end
+
+  defp deal(seat_id) do
+    seat_key = "seat_#{seat_id}"
+    %{player_id: player_id, current_bet: current_bet} = get(seat_key)
+
+    if player_id && current_bet > 0 do
+      set(seat_key, get(seat_key)
+        |> Map.put(:hand, get(seat_key).hand ++ [ {Enum.random(@rank), Enum.random(@suit)} ])
+      )
+      Phoenix.PubSub.broadcast DragNDrop.InternalPubSub, "game", {:update_game_state}
+      :timer.sleep(500)
+    end
+  end
+
+  defp deal_dealer do
+    set("dealer", get("dealer") ++ [ {Enum.random(@rank), Enum.random(@suit)} ])
     Phoenix.PubSub.broadcast DragNDrop.InternalPubSub, "game", {:update_game_state}
+    :timer.sleep(500)
+  end
+
+  defp start_action_to(seat_id) do
+
   end
 
   # GenServer callbacks
@@ -139,13 +231,9 @@ defmodule GameManager.Manager do
   def init(args) do
     [{:ets_table_name, ets_table_name}, {:log_limit, log_limit}] = args
 
-    # :ets.new(ets_table_name, [:named_table, :set, :private])
     :ets.new(ets_table_name, [:named_table, :set])
 
-    :ets.insert(ets_table_name, {"dealer", [
-      "Six",
-      "Seven"
-    ]})
+    :ets.insert(ets_table_name, {"dealer", []})
 
     :ets.insert(ets_table_name, {"seat_1", blank_player()})
     :ets.insert(ets_table_name, {"seat_2", blank_player()})

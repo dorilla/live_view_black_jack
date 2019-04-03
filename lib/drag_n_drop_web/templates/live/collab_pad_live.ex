@@ -58,7 +58,8 @@ defmodule DragNDropWeb.CollabPadLive do
                 <% end %>
 
                 <div class="cards-action">
-                  <%= if @game_state.phase == String.to_atom("ACTION_SEAT_#{idx + 1}") do %>
+                  <%= if @game_state.phase == String.to_atom("ACTION_SEAT_#{idx + 1}") &&
+                      seat.player_id == @current_player_id do %>
                     <button class="hit" phx-click="hit" phx-value=<%= idx + 1 %>>Hit</button>
                     <button class="stand" phx-click="stand" phx-value=<%= idx + 1 %>>Stand</button>
                   <% end %>

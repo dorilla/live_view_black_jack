@@ -31,12 +31,15 @@ defmodule DragNDropWeb.CollabPadLive do
                 </div>
               </div>
               <div class="player-detail">
+                <%= if seat.player_id == @current_player_id do %>
+                  <strong class="you-indicator">YOU</strong>
+                <% end %>
                 <%= if seat.player_name && String.length(seat.player_name) > 0 do %>
-                  <strong class="player-name <%= if seat.player_id == @current_player_id, do: "player-name--you" %>">
+                  <strong class="player-name">
                     <%= seat.player_name %>
                   </strong>
                 <% else %>
-                  <strong class="player-name <%= if seat.player_id == @current_player_id, do: "player-name--you" %>">
+                  <strong class="player-name">
                     Player <%= idx + 1 %>
                   </strong>
                 <% end %>
@@ -51,7 +54,7 @@ defmodule DragNDropWeb.CollabPadLive do
 
               <div class="bet-circle"></div>
               <%= unless @is_seated do %>
-                <div class="sit-here"><button phx-click="sit" phx-value=<%= idx + 1 %>>Sit Here</button></div>
+                <div class="sit-here"><button phx-click="sit" phx-value=<%= idx + 1 %>>SIT HERE</button></div>
               <% end %>
 
             <% end %>
@@ -59,28 +62,28 @@ defmodule DragNDropWeb.CollabPadLive do
         <% end %>
       </div>
 
-      <div class="player-actions">
-        <%= if @is_seated do %>
-          <h1>Player Actions</h1>
+      <%= if @is_seated do %>
+        <div class="player-actions">
           <div>
+            <p>Enter Your Name:</p>
             <form phx-submit="enter-name">
-              <input name="name" maxlength="10" placeholder="Enter your name" value="<%= @current_player_name %>"/>
+              <input name="name" maxlength="10" value="<%= @current_player_name %>"/>
               <input type="hidden" name="seat_id" value="<%= @current_seat_id %>"/>
             </form>
           </div>
 
           <div>
             <%= if @current_seat && @current_seat.money > 0 && @current_seat.current_bet == 0 do %>
-              <hr>
-              Make a bet:
+              <br>
+              <p>Make a bet:</p>
               <form phx-submit="enter-bet">
                 <input type="number" min=1 max=<%= @current_seat.money %> name="bet" value=<%= @current_seat.current_bet %>>
                 <input type="hidden" name="seat_id" value="<%= @current_seat_id %>"/>
               </form>
             <% end %>
           </div>
-        <% end %>
-      </div>
+        </div>
+      <% end %>
     </div>
     """
   end

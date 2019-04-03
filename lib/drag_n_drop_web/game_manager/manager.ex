@@ -5,8 +5,9 @@ defmodule GameManager.Manager do
   # WAIT_FOR_INITIAL_BET
   # FINISH_BETS -> happens after the first bet
   # DEAL_INITIAL -> no more bets
-  # DEAL_PLAYER_1 -> hit/stand action. check if blackjack or bust or 21
-  # DEAL_PLAYER_X -> ****
+  # ACTION_SEAT_1 -> hit/stand action. check if blackjack or bust or 21
+  # ACTION_SEAT_X -> ****
+  # ACTION_DEALER -> ****
   # PAY_OUT
   # back to WAIT_FOR_INITIAL_BET
 
@@ -96,12 +97,20 @@ defmodule GameManager.Manager do
     seat = "seat_#{seat_id}"
     seat_data = get(seat)
       |> Map.put(:current_bet, bet)
-      |> Map.put(:money, get(seat).money - bet)
+      |> Map.put(:money, get(seat).current_bet + get(seat).money - bet)
 
     set(seat, seat_data)
 
     Phoenix.PubSub.broadcast DragNDrop.InternalPubSub, "game", {:update_game_state}
     transition_to_finish_bets_phase()
+  end
+
+  def hit(seat_id) do
+    GenServer.cast(__MODULE__, {:hit, seat_id})
+  end
+
+  def stand(seat_id) do
+    GenServer.cast(__MODULE__, {:stand, seat_id})
   end
 
   defp get(slug) do
@@ -138,21 +147,18 @@ defmodule GameManager.Manager do
   defp transition_to_finish_bets_phase do
     cond do
       get("phase") == :WAIT_FOR_INITIAL_BET || get("phase") == :FINISH_BETS ->
-        if get("curr_task") do
-          Process.exit(get("curr_task"), :brutal_kill)
-          set("curr_task", nil)
+        if !get("curr_task") do
+          {:ok, task} = Task.start(fn -> start_countdown_for_bets() end)
+          set("curr_task", task)
+        else
+          set("phase", :FINISH_BETS)
         end
-
-        {:ok, task} = Task.start(fn -> start_countdown_for_bets() end)
-
-        set("curr_task", task)
-        set("phase", :FINISH_BETS)
       true -> nil
     end
   end
 
   defp start_countdown_for_bets do
-    for inc <- Enum.to_list(3..1) do
+    for inc <- Enum.to_list(8..1) do
       set("countdown", inc)
       Phoenix.PubSub.broadcast DragNDrop.InternalPubSub, "game", {:update_game_state}
       :timer.sleep(1000)
@@ -163,15 +169,22 @@ defmodule GameManager.Manager do
   end
 
   defp start_dealing do
+    bets = Enum.reduce(Enum.to_list(1..5), 0, fn seat_id, acc ->
+      acc + get("seat_#{seat_id}").current_bet
+    end)
+
     cond do
+      bets == 0 ->
+        # no bets, go back to original
+        set("phase", :WAIT_FOR_INITIAL_BET)
+        set("countdown", 0)
+        set("dealer", [])
+        set("curr_task", nil)
+
+        Phoenix.PubSub.broadcast DragNDrop.InternalPubSub, "game", {:update_game_state}
+
       get("phase") == :WAIT_FOR_INITIAL_BET || get("phase") == :FINISH_BETS ->
         set("phase", :DEAL_INITIAL)
-
-        for seat_id <- Enum.to_list(1..5) do
-          deal(seat_id)
-        end
-
-        deal_dealer
 
         for seat_id <- Enum.to_list(1..5) do
           deal(seat_id)
@@ -180,8 +193,12 @@ defmodule GameManager.Manager do
         deal_dealer()
 
         for seat_id <- Enum.to_list(1..5) do
-          start_action_to(seat_id)
+          deal(seat_id)
         end
+
+        deal_dealer()
+
+        start_action_to(1)
       true -> nil
     end
   end
@@ -205,8 +222,180 @@ defmodule GameManager.Manager do
     :timer.sleep(500)
   end
 
-  defp start_action_to(seat_id) do
+  defp start_countdown_for_action do
+    for inc <- Enum.to_list(5..1) do
+      set("countdown", inc)
+      Phoenix.PubSub.broadcast DragNDrop.InternalPubSub, "game", {:update_game_state}
+      :timer.sleep(1000)
+    end
 
+    set("countdown", 0)
+    Phoenix.PubSub.broadcast DragNDrop.InternalPubSub, "game", {:update_game_state}
+
+    start_next_action()
+  end
+
+  defp start_action_to(seat_id) do
+    seat_key = "seat_#{seat_id}"
+    %{player_id: player_id, current_bet: current_bet} = get(seat_key)
+
+    set("phase", String.to_atom("ACTION_SEAT_#{seat_id}"))
+    Phoenix.PubSub.broadcast DragNDrop.InternalPubSub, "game", {:update_game_state}
+
+    if player_id && current_bet > 0 do
+      {:ok, task} = Task.start(fn -> start_countdown_for_action() end)
+
+      set("curr_task", task)
+    else
+      start_next_action()
+    end
+
+    Phoenix.PubSub.broadcast DragNDrop.InternalPubSub, "game", {:update_game_state}
+  end
+
+  defp start_dealer_action do
+    set("phase", :ACTION_DEALER)
+    Phoenix.PubSub.broadcast DragNDrop.InternalPubSub, "game", {:update_game_state}
+    :timer.sleep(1000)
+
+    dealer_hit_or_stand()
+  end
+
+  defp dealer_hit_or_stand do
+    case should_dealer_keep_hitting() do
+      true ->
+        deal_dealer()
+        dealer_hit_or_stand()
+      false -> start_pay_out()
+    end
+  end
+
+  defp start_pay_out do
+    set("phase", :PAY_OUT)
+
+    for seat_id <- Enum.to_list(1..5) do
+      pay_seat(seat_id)
+    end
+
+    Task.start(fn -> restart_game() end)
+  end
+
+  defp pay_seat(seat_id) do
+    seat_key = "seat_#{seat_id}"
+    %{player_id: player_id, current_bet: current_bet} = get(seat_key)
+
+    if player_id && current_bet > 0 do
+      dealer_value = hand_best_value(get("dealer"))
+      seat_value = hand_best_value(get(seat_key).hand)
+
+      IO.puts "#{dealer_value} #{seat_value}"
+      cond do
+        did_bust(seat_id) ->
+          set(seat_key, get(seat_key)
+            |> Map.put(:current_bet, 0)
+          )
+        dealer_value <= 21 && dealer_value > seat_value ->
+          set(seat_key, get(seat_key)
+            |> Map.put(:current_bet, 0)
+          )
+        dealer_value <= 21 && dealer_value == seat_value ->
+          nil
+        true ->
+          set(seat_key, get(seat_key)
+            |> Map.put(:money, get(seat_key).money + get(seat_key).current_bet)
+          )
+      end
+    end
+
+    Phoenix.PubSub.broadcast DragNDrop.InternalPubSub, "game", {:update_game_state}
+  end
+
+  defp start_countdown_for_endgame do
+    for inc <- Enum.to_list(8..1) do
+      set("countdown", inc)
+      Phoenix.PubSub.broadcast DragNDrop.InternalPubSub, "game", {:update_game_state}
+      :timer.sleep(1000)
+    end
+
+    set("countdown", 0)
+    Phoenix.PubSub.broadcast DragNDrop.InternalPubSub, "game", {:update_game_state}
+  end
+
+  defp restart_game do
+    start_countdown_for_endgame()
+
+    if get("curr_task") do
+      Process.exit(get("curr_task"), :brutal_kill)
+      set("curr_task", nil)
+    end
+
+    set("phase", :WAIT_FOR_INITIAL_BET)
+    set("countdown", 0)
+    set("dealer", [])
+
+    for seat_id <- Enum.to_list(1..5) do
+      seat_key = "seat_#{seat_id}"
+
+      set(seat_key, get(seat_key)
+        |> Map.put(:hand, [])
+      )
+
+      if get(seat_key).money == 0 do
+        set(seat_key, blank_player)
+      end
+    end
+
+    Phoenix.PubSub.broadcast DragNDrop.InternalPubSub, "game", {:update_game_state}
+
+    bets = Enum.reduce(Enum.to_list(1..5), 0, fn seat_id, acc ->
+      if get("seat_#{seat_id}").current_bet > 0 do
+        set_bet(seat_id, get("seat_#{seat_id}").current_bet)
+      end
+
+      acc + get("seat_#{seat_id}").current_bet
+    end)
+
+    if bets > 0, do: transition_to_finish_bets_phase()
+  end
+
+  defp start_next_action do
+    case get("phase") do
+      :ACTION_SEAT_1 -> start_action_to(2)
+      :ACTION_SEAT_2 -> start_action_to(3)
+      :ACTION_SEAT_3 -> start_action_to(4)
+      :ACTION_SEAT_4 -> start_action_to(5)
+      :ACTION_SEAT_5 -> start_dealer_action()
+    end
+  end
+
+  defp did_bust(seat_id) do
+    %{option_1: option_1, option_2: _option_2} = get("seat_#{seat_id}").hand
+     |> DragNDropWeb.CollabPadLive.get_value_of_hand()
+
+    if option_1 > 21, do: true, else: false
+  end
+
+  defp hand_best_value(hand) do
+    %{option_1: option_1, option_2: option_2} = DragNDropWeb.CollabPadLive.get_value_of_hand(hand)
+
+    cond do
+      option_1 == option_2 ->
+        option_1
+      option_1 <= 21 && option_2 <= 21 ->
+        max(option_1, option_2)
+      option_1 <= 21 ->
+        option_1
+      option_2 <= 21 ->
+        option_2
+      true ->
+        min(option_1, option_2)
+    end
+  end
+
+  defp should_dealer_keep_hitting() do
+    %{option_1: option_1, option_2: option_2} = DragNDropWeb.CollabPadLive.get_value_of_hand(get("dealer"))
+
+    option_1 < 17 && option_2 < 17
   end
 
   # GenServer callbacks
@@ -225,6 +414,39 @@ defmodule GameManager.Manager do
 
   def handle_cast({:transition_to_finish_bets_phase}, state) do
     Task.start(fn -> transition_to_finish_bets_phase() end)
+    {:noreply, state}
+  end
+
+  def handle_cast({:hit, seat_id}, state) do
+    Task.start(fn ->
+      if get("curr_task") do
+        Process.exit(get("curr_task"), :brutal_kill)
+        set("curr_task", nil)
+      end
+
+      deal(seat_id)
+
+      if did_bust(seat_id) do
+        start_next_action
+      else
+        start_action_to(seat_id)
+      end
+    end)
+
+    {:noreply, state}
+  end
+
+  def handle_cast({:stand, seat_id}, state) do
+    Task.start(fn ->
+      if get("curr_task") do
+        Process.exit(get("curr_task"), :brutal_kill)
+        set("curr_task", nil)
+        set("countdown", 0)
+      end
+
+      start_next_action
+    end)
+
     {:noreply, state}
   end
 

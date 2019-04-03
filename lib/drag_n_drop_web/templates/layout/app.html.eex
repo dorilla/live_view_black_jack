@@ -13,6 +13,16 @@
       <p class="alert alert-danger" role="alert"><%= get_flash(@conn, :error) %></p>
       <%= render @view_module, @view_template, assigns %>
     </main>
+    <div class="built-with">
+      <button><img src="<%= Routes.static_path(@conn, "/images/phoenix.png") %>" alt="Phoenix Framework Logo"/></button>
+      <div class="built-with__details">
+        Built with <a href="https://phoenixframework.org/" target="_blank">Phoenix</a> + <a href="https://github.com/phoenixframework/phoenix_live_view" target="_blank">LiveView</a>
+        <br>
+        Poker Chip CSS by <a href="https://codepen.io/pmk/pen/GgrJRq">Peter Klein</a>
+        <br>
+        Made with &hearts; by <a href="https://twitter.com/DanCarlito">Dan Maglasang</a>
+      </div>
+    </div>
     <script type="text/javascript" src="<%= Routes.static_path(@conn, "/js/app.js") %>"></script>
   </body>
 </html>

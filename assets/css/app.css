@@ -6,6 +6,42 @@ body {
   font-family: 'Avenir Next', Helvetica, Verdana, Arial, sans-serif;
 }
 
+.built-with {
+  position: absolute;
+  top: 8px; left: 8px;
+  opacity: 0.5;
+}
+
+.built-with img {
+  width: 200px;
+}
+
+.built-with:hover .built-with__details {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.built-with__details {
+  opacity: 0;
+  pointer-events: none;
+  background: white;
+  padding: 8px;
+}
+
+.built-with button {
+  outline: none;
+  border: none;
+  background: #366492;
+  padding: 8px 10px;
+  border-radius: 4px;
+  color: white;
+  font-size: 10pt;
+  font-weight: 600;
+  letter-spacing: 2px;
+  cursor: pointer;
+  transition: transform 0.15s;
+}
+
 .container {
   display: flex;
   justify-content: center;

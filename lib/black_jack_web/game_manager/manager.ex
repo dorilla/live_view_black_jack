@@ -236,7 +236,7 @@ defmodule GameManager.Manager do
     if player_id && current_bet > 0 do
       {:ok, task} = Task.start(fn ->
         start_countdown(5)
-        start_next_action()
+        stand(seat_id)
       end)
 
       set("curr_task", task)

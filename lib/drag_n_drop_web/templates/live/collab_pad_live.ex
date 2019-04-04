@@ -16,12 +16,13 @@ defmodule DragNDropWeb.CollabPadLive do
 
         <div class="cards cards--dealer">
           <%= if length(@game_state.dealer) do %>
-            <%= if get_value_of_hand(@game_state.dealer).option_1 > 21 do %>
+            <%= if GameManager.Manager.get_value_of_hand(@game_state.dealer).option_1 > 21 do %>
               <div class="cards-bust">BUST!</div>
             <% end %>
 
             <%= for {{rank, suit}, idx} <- Enum.with_index(@game_state.dealer) do %>
               <%= if idx == 0 && @game_state.phase != :ACTION_DEALER && @game_state.phase != :PAY_OUT do %>
+                <%# Hide the dealer's first card %>
                 <div class="card card--idx-<%= idx + 1 %> card--hidden"></div>
               <% else %>
                 <div class="card card--idx-<%= idx + 1 %> card--rank-<%= String.downcase(Atom.to_string(rank)) %> card--suit-<%= String.downcase(Atom.to_string(suit)) %>">
@@ -33,12 +34,12 @@ defmodule DragNDropWeb.CollabPadLive do
           <% end %>
 
           <%= if @game_state.phase == :ACTION_DEALER || @game_state.phase == :PAY_OUT do %>
-            <div class="hand-value <%= if get_value_of_hand(@game_state.dealer).option_1 > 0, do: "hand-value--visible" %>">
+            <div class="hand-value <%= if GameManager.Manager.get_value_of_hand(@game_state.dealer).option_1 > 0, do: "hand-value--visible" %>">
               <span>Hand value:</span>
-              <%= get_value_of_hand(@game_state.dealer).option_1 %>
-              <%= if get_value_of_hand(@game_state.dealer).option_1 != get_value_of_hand(@game_state.dealer).option_2 &&
-                  get_value_of_hand(@game_state.dealer).option_2 <= 21 do %>
-                or <%= get_value_of_hand(@game_state.dealer).option_2 %>
+              <%= GameManager.Manager.get_value_of_hand(@game_state.dealer).option_1 %>
+              <%= if GameManager.Manager.get_value_of_hand(@game_state.dealer).option_1 != GameManager.Manager.get_value_of_hand(@game_state.dealer).option_2 &&
+                  GameManager.Manager.get_value_of_hand(@game_state.dealer).option_2 <= 21 do %>
+                or <%= GameManager.Manager.get_value_of_hand(@game_state.dealer).option_2 %>
               <% end %>
             </div>
           <% end %>
@@ -53,7 +54,7 @@ defmodule DragNDropWeb.CollabPadLive do
 
             <div class="cards">
               <%= if length(seat.hand) do %>
-                <%= if get_value_of_hand(seat.hand).option_1 > 21 do %>
+                <%= if GameManager.Manager.get_value_of_hand(seat.hand).option_1 > 21 do %>
                   <div class="cards-bust">BUST!</div>
                 <% end %>
 
@@ -75,13 +76,14 @@ defmodule DragNDropWeb.CollabPadLive do
               <% end %>
             </div>
 
-            <%# this should be moved to its own template %>
-            <div class="hand-value <%= if get_value_of_hand(seat.hand).option_1 > 0, do: "hand-value--visible" %>">
+            <%# TODO this should be moved to its own template %>
+            <%# TODO too many calls to `get_value_of_hand` which may be inefficient %>
+            <div class="hand-value <%= if GameManager.Manager.get_value_of_hand(seat.hand).option_1 > 0, do: "hand-value--visible" %>">
               <span>Hand value:</span>
-              <%= get_value_of_hand(seat.hand).option_1 %>
-              <%= if get_value_of_hand(seat.hand).option_1 != get_value_of_hand(seat.hand).option_2 &&
-                  get_value_of_hand(seat.hand).option_2 <= 21 do %>
-                or <%= get_value_of_hand(seat.hand).option_2 %>
+              <%= GameManager.Manager.get_value_of_hand(seat.hand).option_1 %>
+              <%= if GameManager.Manager.get_value_of_hand(seat.hand).option_1 != GameManager.Manager.get_value_of_hand(seat.hand).option_2 &&
+                  GameManager.Manager.get_value_of_hand(seat.hand).option_2 <= 21 do %>
+                or <%= GameManager.Manager.get_value_of_hand(seat.hand).option_2 %>
               <% end %>
             </div>
 
@@ -141,8 +143,16 @@ defmodule DragNDropWeb.CollabPadLive do
               <br>
               <p>Make a bet:</p>
               <form phx-submit="enter-bet">
-                <input type="number" min=0 max=<%= @current_seat.money + @current_seat.current_bet %> name="bet" value=<%= @current_seat.current_bet %>>
-                <input type="hidden" name="seat_id" value="<%= @current_seat_id %>"/>
+                <input
+                  type="number"
+                  min=0
+                  max=<%= @current_seat.money + @current_seat.current_bet %>
+                  name="bet"
+                  value=<%= @current_seat.current_bet %>>
+                <input
+                  type="hidden"
+                  name="seat_id"
+                  value="<%= @current_seat_id %>"/>
               </form>
             <% end %>
           </div>
@@ -222,31 +232,6 @@ defmodule DragNDropWeb.CollabPadLive do
       :DIAMOND -> "◆"
       :SPADE -> "♠"
       :CLUB -> "♣"
-    end
-  end
-
-  def get_value_of_hand(hand) do
-    Enum.reduce(hand, %{option_1: 0, option_2: 0}, fn card, acc ->
-      %{option_1: acc1, option_2: acc2} = acc
-      %{option_1: get_value_of_card(card) + acc1, option_2: get_value_of_card(card, true) + acc2}
-    end)
-  end
-
-  def get_value_of_card({rank, _suit}, ace_2 \\ false) do
-    case rank do
-      :ACE -> if ace_2, do: 11, else: 1
-      :TWO -> 2
-      :THREE -> 3
-      :FOUR -> 4
-      :FIVE -> 5
-      :SIX -> 6
-      :SEVEN -> 7
-      :EIGHT -> 8
-      :NINE -> 9
-      :TEN -> 10
-      :JACK -> 10
-      :QUEEN -> 10
-      :KING -> 10
     end
   end
 

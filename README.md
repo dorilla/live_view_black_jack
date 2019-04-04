@@ -9,12 +9,14 @@ To start your Phoenix server:
 
 Now you can visit [`localhost:4000`](http://localhost:4000) from your browser.
 
-Ready to run in production? Please [check our deployment guides](https://hexdocs.pm/phoenix/deployment.html).
+# Info
 
-## Learn more
+This repo is the code behind https://polite-angelic-beaver.gigalixirapp.com/.
 
-  * Official website: http://www.phoenixframework.org/
-  * Guides: https://hexdocs.pm/phoenix/overview.html
-  * Docs: https://hexdocs.pm/phoenix
-  * Mailing list: http://groups.google.com/group/phoenix-talk
-  * Source: https://github.com/phoenixframework/phoenix
+It is a Phoenix Application utilizing [LiveView](https://github.com/phoenixframework/phoenix_live_view).
+
+The main pieces of code lives in:
+* `lib/black_jack_web/live/black_jack_live.ex`
+  * Main templating logic
+* `lib/game_manager/live/manager.ex`
+  * This is the dealer simulater

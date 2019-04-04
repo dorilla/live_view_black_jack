@@ -318,7 +318,7 @@ defmodule GameManager.Manager do
       )
 
       # player has no more money, they gotta go!
-      if get(seat_key).money == 0 do
+      if get(seat_key).money == 0 && get(seat_key).current_bet == 0 do
         set(seat_key, blank_player)
       end
     end

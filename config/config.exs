@@ -7,15 +7,15 @@
 # General application configuration
 use Mix.Config
 
-config :drag_n_drop,
-  ecto_repos: [DragNDrop.Repo]
+config :black_jack,
+  ecto_repos: [BlackJack.Repo]
 
 # Configures the endpoint
-config :drag_n_drop, DragNDropWeb.Endpoint,
+config :black_jack, BlackJackWeb.Endpoint,
   url: [host: "localhost"],
   secret_key_base: "htvUM9iA0YHzcQ0v1Z3OKYWg2La2Bhfnu0UueI0P66mpdtIdx60rMML3sR+aZIIh",
-  render_errors: [view: DragNDropWeb.ErrorView, accepts: ~w(html json)],
-  pubsub: [name: DragNDrop.PubSub, adapter: Phoenix.PubSub.PG2],
+  render_errors: [view: BlackJackWeb.ErrorView, accepts: ~w(html json)],
+  pubsub: [name: BlackJack.PubSub, adapter: Phoenix.PubSub.PG2],
   live_view: [
     signing_salt: "015A8dTIldakFsDRsLI6uJqAKPrWTeWJ"
   ]

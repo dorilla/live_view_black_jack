@@ -1,0 +1,1 @@
+<%= live_render(@conn, BlackJackWeb.BlackJackLive) %>

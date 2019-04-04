@@ -6,7 +6,7 @@ use Mix.Config
 # The watchers configuration can be used to run external
 # watchers to your application. For example, we use it
 # with webpack to recompile .js and .css sources.
-config :drag_n_drop, DragNDropWeb.Endpoint,
+config :black_jack, BlackJackWeb.Endpoint,
   http: [port: 4000],
   debug_errors: true,
   code_reloader: true,
@@ -46,14 +46,14 @@ config :drag_n_drop, DragNDropWeb.Endpoint,
 # different ports.
 
 # Watch static and templates for browser reloading.
-config :drag_n_drop, DragNDropWeb.Endpoint,
+config :black_jack, BlackJackWeb.Endpoint,
   live_reload: [
     patterns: [
       ~r{priv/static/.*(js|css|png|jpeg|jpg|gif|svg)$},
       ~r{priv/gettext/.*(po)$},
-      ~r{lib/drag_n_drop_web/views/.*(ex)$},
-      ~r{lib/drag_n_drop_web/templates/.*(eex)$},
-      ~r{lib/drag_n_drop_web/live/.*(ex)$}
+      ~r{lib/black_jack_web/views/.*(ex)$},
+      ~r{lib/black_jack_web/templates/.*(eex)$},
+      ~r{lib/black_jack_web/live/.*(ex)$}
     ]
   ]
 
@@ -68,9 +68,9 @@ config :phoenix, :stacktrace_depth, 20
 config :phoenix, :plug_init_mode, :runtime
 
 # Configure your database
-config :drag_n_drop, DragNDrop.Repo,
+config :black_jack, BlackJack.Repo,
   username: "postgres",
   password: "postgres",
-  database: "drag_n_drop_dev",
+  database: "black_jack_dev",
   hostname: "localhost",
   pool_size: 10

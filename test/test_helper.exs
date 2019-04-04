@@ -1,2 +1,2 @@
 ExUnit.start()
-Ecto.Adapters.SQL.Sandbox.mode(DragNDrop.Repo, :manual)
+Ecto.Adapters.SQL.Sandbox.mode(BlackJack.Repo, :manual)

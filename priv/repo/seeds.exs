@@ -5,7 +5,7 @@
 # Inside the script, you can read and write to any of your
 # repositories directly:
 #
-#     DragNDrop.Repo.insert!(%DragNDrop.SomeSchema{})
+#     BlackJack.Repo.insert!(%BlackJack.SomeSchema{})
 #
 # We recommend using the bang functions (`insert!`, `update!`
 # and so on) as they will fail if something goes wrong.

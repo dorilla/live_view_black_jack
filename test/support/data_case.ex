@@ -1,4 +1,4 @@
-defmodule DragNDrop.DataCase do
+defmodule BlackJack.DataCase do
   @moduledoc """
   This module defines the setup for tests requiring
   access to the application's data layer.
@@ -16,20 +16,20 @@ defmodule DragNDrop.DataCase do
 
   using do
     quote do
-      alias DragNDrop.Repo
+      alias BlackJack.Repo
 
       import Ecto
       import Ecto.Changeset
       import Ecto.Query
-      import DragNDrop.DataCase
+      import BlackJack.DataCase
     end
   end
 
   setup tags do
-    :ok = Ecto.Adapters.SQL.Sandbox.checkout(DragNDrop.Repo)
+    :ok = Ecto.Adapters.SQL.Sandbox.checkout(BlackJack.Repo)
 
     unless tags[:async] do
-      Ecto.Adapters.SQL.Sandbox.mode(DragNDrop.Repo, {:shared, self()})
+      Ecto.Adapters.SQL.Sandbox.mode(BlackJack.Repo, {:shared, self()})
     end
 
     :ok

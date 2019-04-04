@@ -1,9 +1,9 @@
-defmodule DragNDrop.MixProject do
+defmodule BlackJack.MixProject do
   use Mix.Project
 
   def project do
     [
-      app: :drag_n_drop,
+      app: :black_jack,
       version: "0.1.0",
       elixir: "~> 1.5",
       elixirc_paths: elixirc_paths(Mix.env()),
@@ -19,7 +19,7 @@ defmodule DragNDrop.MixProject do
   # Type `mix help compile.app` for more information.
   def application do
     [
-      mod: {DragNDrop.Application, []},
+      mod: {BlackJack.Application, []},
       extra_applications: [:logger, :runtime_tools]
     ]
   end

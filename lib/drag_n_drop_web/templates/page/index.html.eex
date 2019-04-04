@@ -1,3 +1,0 @@
-<!%= link "CollabPad", to: Routes.live_path(@conn, DragNDropWeb.CollabPadLive) %>
-
-<%= live_render(@conn, DragNDropWeb.CollabPadLive) %>

@@ -1,4 +1,4 @@
-defmodule DragNDropWeb.ChannelCase do
+defmodule BlackJackWeb.ChannelCase do
   @moduledoc """
   This module defines the test case to be used by
   channel tests.
@@ -21,15 +21,15 @@ defmodule DragNDropWeb.ChannelCase do
       use Phoenix.ChannelTest
 
       # The default endpoint for testing
-      @endpoint DragNDropWeb.Endpoint
+      @endpoint BlackJackWeb.Endpoint
     end
   end
 
   setup tags do
-    :ok = Ecto.Adapters.SQL.Sandbox.checkout(DragNDrop.Repo)
+    :ok = Ecto.Adapters.SQL.Sandbox.checkout(BlackJack.Repo)
 
     unless tags[:async] do
-      Ecto.Adapters.SQL.Sandbox.mode(DragNDrop.Repo, {:shared, self()})
+      Ecto.Adapters.SQL.Sandbox.mode(BlackJack.Repo, {:shared, self()})
     end
 
     :ok

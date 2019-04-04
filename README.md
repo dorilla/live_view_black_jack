@@ -18,5 +18,5 @@ It is a Phoenix Application utilizing [LiveView](https://github.com/phoenixframe
 The main pieces of code lives in:
 * `lib/black_jack_web/live/black_jack_live.ex`
   * Main templating logic
-* `lib/game_manager/live/manager.ex`
+* `lib/game_manager/manager.ex`
   * This is the dealer simulater
